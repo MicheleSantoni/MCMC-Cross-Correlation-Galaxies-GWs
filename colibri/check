@@ -1,0 +1,141 @@
+    def hi_class_pk(param_file, k, z, nonlinear=True):
+        cosmo = Class()
+        cosmo.read_param_file(param_file)
+        cosmo.compute()
+
+        k = np.atleast_1d(k)
+        z = np.atleast_1d(z)
+        pk = np.zeros((len(z), len(k)))
+
+        for i in range(len(z)):
+            for j in range(len(k)):
+                pk[i, j] = cosmo.pk(k[j], z[i])
+
+        cosmo.struct_cleanup()
+        cosmo.empty()
+
+        return k, pk
+
+# -------------------------------------------------------------------------------
+    # CLASS_Pk
+    # -------------------------------------------------------------------------------
+    def class_Pk(self,
+                 z=0.,
+                 k=np.logspace(-4., 2., 1001),
+                 nonlinear=False,
+                 halofit='halofit',
+                 **kwargs):
+        """
+        This routine uses CLASS to return power spectra for the chosen cosmology. Depending
+        on the value of 'nonlinear', the power spectrum is linear or non-linear.
+
+        :param z: Redshifts.
+        :type z: array, default = 0
+
+        :param k: Scales in units of :math:`h/\mathrm{Mpc}`.
+        :type k: array, default = ``np.logspace(-4., 2., 1001)``
+
+        :param nonlinear: Whether to return non-linear power spectra.
+        :type nonlinear: boolean, default = False
+
+        :param kwargs: Keyword arguments of ``classy.pyx`` (see the file `explanatory.ini` in Class or https://github.com/lesgourg/class_public/blob/master/python/classy.pyx)
+
+        Returns
+        -------
+
+        k: array
+            Scales in :math:`h/\mathrm{Mpc}`. Basically the same 'k' of the input.
+
+        pk: 2D array of shape ``(len(z), len(k))``
+            Power spectrum in units of :math:`(\mathrm{Mpc}/h)^3`.
+        """
+
+        # Set halofit for non-linear computation
+        if nonlinear == True:
+            halofit = halofit
+        else:
+            halofit = 'none'
+
+        # Setting lengths
+        nk = len(np.atleast_1d(k))
+        nz = len(np.atleast_1d(z))
+        z = np.atleast_1d(z)
+        k = np.atleast_1d(k)
+        kmax = max(k.max(), 500.)
+        zmax = max(z.max(), 101.)
+        tau = self.tau
+        params = {
+            'output': 'mPk dTk',
+            'n_s': self.ns,
+            'h': self.h,
+            'omega_b': self.Omega_b * self.h ** 2.,
+            'omega_cdm': self.Omega_cdm * self.h ** 2.,
+            'Omega_k': self.Omega_K,
+            'tau_reio': self.tau,
+            'T_cmb': self.T_cmb,
+            'P_k_max_h/Mpc': kmax,
+            'z_max_pk': zmax,
+            'non_linear': halofit}
+        if self.use_EFT: ################################ QUI
+            params['use_EFT'] = 'yes'
+            params['gravity_model'] = self.gravity_model
+            params['parameters_smg'] = ', '.join(str(x) for x in self.parameters_smg)
+            params['M_pl_evolution'] = 'yes'
+
+        # Set initial conditions
+        if self.sigma_8 is not None:
+            params['sigma8'] = self.sigma_8
+        else:
+            params['A_s'] = self.As
+        # Set dark energy
+        if self.w0 != -1. or self.wa != 0.:
+            params['Omega_fld'] = self.Omega_lambda
+            params['w0_fld'] = self.w0
+            params['wa_fld'] = self.wa
+        # Set neutrino masses
+        params['N_ur'] = self.massless_nu
+        params['N_ncdm'] = self.massive_nu
+        if self.massive_nu != 0:
+            params['m_ncdm'] = ', '.join(str(x) for x in self.M_nu)
+            params['T_ncdm'] = ', '.join(str(self.Gamma_nu) for x in self.M_nu)
+        # Set WDM masses (remove UR species cause Class treats WDM and neutrinos the same way)
+        params['N_ncdm'] += self.N_wdm
+        if self.N_wdm > 0 and self.massive_nu > 0.:
+            params['m_ncdm'] += ', ';
+            params['T_ncdm'] += ', '
+            params['m_ncdm'] += ', '.join(str(x) for x in self.M_wdm)
+            params['T_ncdm'] += ', '.join(str(x) for x in self.Gamma_wdm)
+        elif self.N_wdm > 0:
+            params['m_ncdm'] = ', '.join(str(x) for x in self.M_wdm)
+            params['T_ncdm'] = ', '.join(str(x) for x in self.Gamma_wdm)
+        # Add the keyword arguments
+        for key, value in kwargs.items():
+            if not key in params:
+                params[key] = value
+            else:
+                raise KeyError("Parameter %s already exists in the dictionary, impossible to substitute it." % key)
+
+        # Compute
+        cosmo = Class()
+        cosmo.set(params)
+        print("CLASS parameters:")
+        for k, v in params.items():
+            print(f"{k}: {v}")
+
+        cosmo.compute()
+
+        # I change to k/h since CLASS uses k in units of 1/Mpc
+        k *= self.h
+
+        # Storing Pk
+        pk = np.zeros((nz, nk))
+        for i in range(nk):
+            for j in range(nz):
+                pk[j, i] = cosmo.pk(k[i], z[j]) * self.h ** 3.
+        # Re-switching to (Mpc/h) units
+        k /= self.h
+
+        cosmo.struct_cleanup()
+        cosmo.empty()
+
+        return k, pk

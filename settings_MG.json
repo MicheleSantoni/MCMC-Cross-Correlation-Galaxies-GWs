@@ -1,0 +1,47 @@
+{
+    "fiducial_vals": {
+        "H0": 67.81,
+        "Omega_m": 0.31,
+        "Omega_b": 0.048,
+        "A_s": 2.100549e-09,
+        "n_s": 0.9660499,
+        "alpha_M": 0.5,
+        "alpha_B":0.1
+    },
+    "params_inference": [
+        "H0",
+        "Omega_m",
+        "Omega_b",
+        "A_s",
+        "n_s",
+        "alpha_M",
+        "alpha_B"
+    ],
+    "prior_limits": {
+        "H0": [60, 80],
+        "Omega_m": [0.18, 0.5],
+        "Omega_b": [0.001,1],
+        "A_s": [1e-11, 1e-7],
+        "n_s": [0.5,1.5],
+        "alpha_M": [-1, 1],
+        "alpha_B": [-1, 1]
+    },
+    "params_fixed": [],
+    "all_params": [
+        "H0",
+        "Omega_m",
+        "Omega_b",
+        "A_s",
+        "n_s",
+        "alpha_M",
+        "alpha_B"
+    ],
+    "nprocesses":14,
+    "nwalkers":14,
+    "eps":0.15,
+    "ntaus": 50,
+    "maxsteps":100000,
+    "mpi":0
+}
+
+

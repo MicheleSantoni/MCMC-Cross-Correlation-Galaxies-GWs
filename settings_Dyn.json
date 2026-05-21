@@ -1,0 +1,62 @@
+{
+    "fiducial_vals": {
+        "H0": 67.81,
+        "Omega_m": 0.31,
+        "Omega_b": 0.048,
+        "A_s": 2.100549e-09,
+        "n_s": 0.9660499,
+	"A_gal":1.0,
+        "gamma_gal":0.50,
+        "A_GW":1.2,
+        "gamma_GW":0.5,
+        "w0": -1.0,
+        "wa":0.0
+    },
+    "params_inference": [
+        "H0",
+        "Omega_m",
+        "Omega_b",
+        "A_s",
+        "n_s",
+	"A_gal",
+        "gamma_gal",
+        "A_GW",
+        "gamma_GW",
+        "w0",
+        "wa"
+
+    ],
+    "prior_limits": {
+        "H0": [60, 80],
+        "Omega_m": [0.18, 0.5],
+        "Omega_b": [0.001,1],
+        "A_s": [1e-11, 1e-7],
+        "n_s": [0.5,1.5],
+	"A_GW":[0.5,2.0],
+        "A_gal":[0.5,2.0],
+        "gamma_GW":[0.0,2.0],
+        "gamma_gal":[0.0,2.0],
+        "w0": [-2, -0.5],
+        "wa": [-1, 1]
+    },
+    "params_fixed": [],
+    "all_params": [
+        "H0",
+        "Omega_m",
+        "Omega_b",
+        "A_s",
+        "n_s",
+	"A_gal",
+        "gamma_gal",
+        "A_GW",
+        "gamma_GW",
+        "w0",
+        "wa"
+    ],
+    "nprocesses":22,
+    "nwalkers":22,
+    "eps":0.15,
+    "ntaus": 50,
+    "maxsteps":100000,
+    "mpi":0
+}
